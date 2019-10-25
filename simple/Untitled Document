@@ -1,0 +1,30 @@
+find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz 
+
+cat /proc/kallsyms | grep native_write_cr4
+
+cat /sys/module/vuln_driver/sections/.text
+
+target remote localhost:1234
+
+add-symbol-file /home/lier/work/nationallinux/new_vulnerable/vulnerable_driver/src/vuln_driver.ko 0xffffffffc0002000
+
+
+/ $ cat /sys/module/vuln_driver/sections/.text
+0xffffffffc0002000
+
+
+/ $ cat /proc/kallsyms | grep native_write_cr4
+ffffffff810505f4 t native_write_cr4
+/ $ cat /proc/kallsyms | grep prepare_kernel_cred
+ffffffff810855d9 T prepare_kernel_cred
+ffffffff81b928c0 R __ksymtab_prepare_kernel_cred
+ffffffff81badb28 r __kcrctab_prepare_kernel_cred
+ffffffff81bba6c8 r __kstrtab_prepare_kernel_cred
+/ $ cat /proc/kallsyms | grep commit_creds
+ffffffff810852b3 T commit_creds
+ffffffff81b89ef0 R __ksymtab_commit_creds
+ffffffff81ba9640 r __kcrctab_commit_creds
+ffffffff81bba704 r __kstrtab_commit_creds
+/ $ 
+
+

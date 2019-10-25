@@ -1,0 +1,1 @@
+cmd_/home/lier/work/new_vulnerable/simple/src/mymap.ko := aarch64-linux-gnu-ld -EL -r  -T ../scripts/module-common.lds --build-id  -o /home/lier/work/new_vulnerable/simple/src/mymap.ko /home/lier/work/new_vulnerable/simple/src/mymap.o /home/lier/work/new_vulnerable/simple/src/mymap.mod.o
