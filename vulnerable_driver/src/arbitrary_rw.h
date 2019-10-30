@@ -131,7 +131,7 @@
 
 		if((count + pos) > g_mem_buffer->data_size)
 			return -EINVAL;
-
+		printk(KERN_INFO"[x] des 0x%p source 0x%p count:0x%d",g_mem_buffer->data + pos,w_args->buff,count);
 		ret = copy_from_user(g_mem_buffer->data + pos, w_args->buff, count);
 
 		return ret;
