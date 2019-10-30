@@ -57,6 +57,9 @@
 
 		printk(KERN_INFO "[x] Allocated memory with size %lu [x]\n", g_mem_buffer->data_size);
 
+		printk("g_mem_buffer->data_size 0x%llx ,g_meme_buffer->data 0x%llx,g_meem_buffer->pos 0x%llx",&g_mem_buffer->data_size,g_mem_buffer->data,&g_mem_buffer->pos);
+
+
 		return 0;
 
 		error_no_mem:
@@ -88,7 +91,7 @@
 		if(new_data == NULL)
 			return -ENOMEM;
 
-		g_mem_buffer->data = new_data;
+		g_mem_buffer->data = new_data;  //0x10
 		g_mem_buffer->data_size = new_size;
 
 		printk(KERN_INFO "[x] g_mem_buffer->data_size = %lu [x]\n", g_mem_buffer->data_size);

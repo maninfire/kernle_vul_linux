@@ -6,7 +6,7 @@ cat /sys/module/vuln_driver/sections/.text
 
 target remote localhost:1234
 
-add-symbol-file /home/lier/work/nationallinux/new_vulnerable/vulnerable_driver/src/vuln_driver.ko 0xffffffffc0002000
+add-symbol-file /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/vuln_driver.ko 0xffffffbffc000000
 
 
 / $ cat /sys/module/vuln_driver/sections/.text
@@ -27,4 +27,5 @@ ffffffff81ba9640 r __kcrctab_commit_creds
 ffffffff81bba704 r __kstrtab_commit_creds
 / $ 
 
-
+ffffffc000105ff0 T SyS_gettimeofday
+vdso   user space size   7f83460000-7f83461000
