@@ -8,19 +8,7 @@
 
 #ifndef _USE_AFTER_FREE_
 	#define _USE_AFTER_FREE_
-	static void showdate(void* addr,int len){
-		// if(0){
-		// 	printk(KERN_WARNING "[x]showdate start\n");
-		// 	unsigned long int* paddr=(unsigned long int*)addr;
-		// 	int i;
-		// 	//void **p=&&addr;
-		// 	for(i=0;i<len;i++){
-		// 		printk(KERN_WARNING "[x]addr 0x: %lx value 0x: %lx",(paddr+i),*(paddr+i));
-		// 	}
-		// 	printk(KERN_WARNING "[x]showdate end\n");
-		// }
 
-	}
 	typedef struct uaf_obj
 	{
 		char uaf_first_buff[56];
@@ -73,7 +61,7 @@
 		memset(target->uaf_first_buff, 0x41, sizeof(target->uaf_first_buff));
 
 		global_uaf_obj = target;
-		showdate(target,10);
+		//showdate(target,10);
 		printk(KERN_WARNING "[x] Allocated uaf object [x] global :0x%lx\n",global_uaf_obj);
 
 		return 0;
@@ -140,7 +128,7 @@
 		}
 		printk(KERN_WARNING "[x] Allocated k_object:%llx len:%ld\n",trash_object,sizeof(k_object));
 		ret = copy_from_user(trash_object, user_kobj, sizeof(k_object));
-		showdate(trash_object,10);
+		//showdate(trash_object,10);
 		//printk(KERN_WARNING "[x] global-fn%x");
 		return 0;
 	}

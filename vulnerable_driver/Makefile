@@ -1,20 +1,19 @@
-#CC = aarch64-linux-gnu-
-#PWD:=$(shell pwd)
-
-KDIR = /home/lier/work/linux-4.4.58/build
+obj-m += src/vuln_driver.o
+#obj-m += src/klog.o
 EXTRA_CFLAGS += -fno-stack-protector
 EXTRA_CFLAGS += -g
 EXTRA_CFLAGS += -o0
-
-obj-m += src/vuln_driver.o
-#CFLAGS_vuln_driver.o = -o0
+CFLAGS_vuln_driver.o = -o0
 all:
-
-	make -C $(KDIR) M=$(PWD)  modules ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+	make -C /lib/modules/`uname -r`/build M=$(PWD) modules
 clean:
 	rm -rf src/*.ko
 	rm -rf src/*.mod
 	rm -rf src/*.mod.*
 	rm -rf src/*.o
+	rm .tmp_versions/vuln_driver.mod
+	rm src/.vuln_driver.ko.cmd
+	rm src/.vuln_driver.mod.o.cmd
+	rm src/.vuln_driver.o.cmd
 	rm Module.symvers
 	rm modules.order

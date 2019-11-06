@@ -1,3 +1,6 @@
 {
-    "workbench.editor.enablePreview": false
+    "workbench.editor.enablePreview": false,
+    "files.associations": {
+        "uninitialised_stack_var.h": "c"
+    }
 }

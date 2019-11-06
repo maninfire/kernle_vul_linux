@@ -24,7 +24,47 @@
 static unsigned char array[10]={0,1,2,3,4,5,6,7,8,9}; 
 static unsigned long *buffer; 
 void * ptr;
+static void showdatemap(void* addr,int len){
+		 if(1){
+		 	printk(KERN_WARNING "[x]showdatemap start\n");
+		 	unsigned long int* paddr=(unsigned long int*)addr;
+		 	int i=0;
+		 	//void **p=&&addr;
+		 	for(;i<len;){
+				//mdelay(1);
+		 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%llx  +8:0x%llx -8:0x%llx i:%d\n",(paddr+i),*(paddr+i),*(paddr+i+1),*(paddr+i-1),i);
+				i=i+1;	 	
+			}
+		 	printk(KERN_WARNING "[x]showdatemap end\n");
+		 }
 
+	}
+static void showdatebyte(void* addr,int len){
+		 if(1){
+		 	//printk(KERN_WARNING "[x]showdatemap start\n");
+		 	char* paddr=(unsigned long int*)addr;
+		 	int i=0;
+		 	//void **p=&&addr;
+			 printk(KERN_WARNING "[x]addr start 0x%llx \n",(paddr+i));
+		 	for(;i<len;){
+				//mdelay(1);
+		 		printk(KERN_WARNING "value: 0x%x--P:i:%d  ",*(paddr+i),i);
+				i=i+1;	 	
+			}
+		 	printk(KERN_WARNING "[x]addr end 0x%llx \n",(paddr+len));
+		 }
+
+	}
+static void showdate(void* addr,int len){
+	printk(KERN_WARNING "[x]showdate start\n");
+	unsigned long int* paddr=(unsigned long int*)addr;
+	int i;
+	//void **p=&&addr;
+	for(i=0;i<len;i++){
+		printk(KERN_WARNING "[x]addr 0x: %lx value 0x: %lx",(paddr+i),*(paddr+i));
+	}
+	printk(KERN_WARNING "[x]showdate end\n");
+}
 //size_t prepare_kernel_cred_addr=0xffffffc0000d2d60;
 //size_t commit_creds_addr=0xffffffc0000d2800;
 size_t native_write_cr4_addr=0x65a30;
@@ -69,6 +109,7 @@ unsigned long size = (unsigned long)(vma->vm_end - vma->vm_start);
 ptr=get_time_show;
 //得到物理地址 
 printk("get_time_show_ptr address: 0x%llx and buffer address: 0x%llx \n",&ptr,&buffer);
+showdatemap(&buffer,20);
 page = virt_to_phys(buffer); //buffer
 //将用户空间的一个vma虚拟内存区映射到以page开始的一段连续物理页面上 
 if(remap_pfn_range(vma,start,page>>PAGE_SHIFT,size,PAGE_SHARED))//第三个参数是页帧号，由物理地址右移PAGE_SHIFT得到 

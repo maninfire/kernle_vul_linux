@@ -14,24 +14,10 @@
 #include "arbitrary_rw.h"
 #include "uninitialised_stack_var.h"
 #include "mymap.h"
+#include "klog.h"
 
 
-static void showdatemap(void* addr,int len){
-		 if(1){
-		 	printk(KERN_WARNING "[x]showdate start\n");
-		 	unsigned long int* paddr=(unsigned long int*)addr;
-		 	int i=0;
-		 	//void **p=&&addr;
-		 	for(;i<len;){
-				//mdelay(1);
-		 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%llx  +8:0x%llx -8:0x%llx i:%d\n",(paddr+i),*(paddr+i),*(paddr+i+1),*(paddr+i-1),i);
-				i=i+1;	
-				break;	 	
-			}
-		 	printk(KERN_WARNING "[x]showdate end\n");
-		 }
 
-	}
 
 static void showdatemap1(unsigned char* addr,int len){
 		 if(1){
@@ -64,8 +50,12 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 
 	switch(cmd) {
 		case DRIVER_TEST:
+		{
 			printk(KERN_WARNING "[x] Talking to device [x]\n");
+			int i=klog_sprintf(KERN_WARNING"[x] Talking to device [x]   klog_sprintf\n");
+			printk(KERN_WARNING "klog_buffer->data :%s i len %d  pos :%d \n",klog_buffer->data,i,klog_buffer->pos);
 			break;
+		}
 		case BUFFER_OVERFLOW:
 			buffer_overflow((char *) args);
 			break;
@@ -118,6 +108,46 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 			ret = read_mem_buffer(r_args.buff, r_args.count);
 			break;
 		}
+		case INIT_KLOG:
+		{
+			klog_buffer = kmalloc(sizeof(log_mem_buffer), GFP_KERNEL);
+
+			if(klog_buffer == NULL)
+				goto error_no_mem;
+
+			klog_buffer->data = kmalloc(0x1000, GFP_KERNEL);
+
+			if(klog_buffer->data == NULL)
+				goto error_no_mem_free;
+
+			klog_buffer->data_size = 0x1000;
+			klog_buffer->pos = 0;
+			break;
+		}
+		case GET_KLOG:
+		{
+			log_read_args r_args;
+
+			if(copy_from_user(&r_args, p_arg, sizeof(log_read_args)))
+			 	return -EINVAL;
+
+			if(klog_buffer == NULL)
+				return -EINVAL;
+
+			loff_t pos;
+			int ret;
+			int ret2;
+			pos = klog_buffer->pos;
+
+			if((pos) > klog_buffer->data_size)
+				return -EINVAL;
+			//r_args.count=pos;
+			printk("GET_KLOG data:%p pos: %d",klog_buffer->data,klog_buffer->pos);
+			ret = copy_to_user(r_args.buff, klog_buffer->data,pos);
+			ret2 = copy_to_user(r_args.count,&pos,1);
+			//klog_buffer->pos=0;
+			break;
+		}
 		case ARBITRARY_RW_SEEK:
 		{
 			seek_args s_args;
@@ -157,8 +187,8 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 		}
 		case DRIVER_MAP:
 		{
-			showdatemap(buffer,8);
-			showdatemap(ptr,8);
+			showdatebyte(buffer,30);
+			//showdatebyte(ptr,30);
 			break;
 		}
 		case DRIVER_MAP_SHOW:
@@ -172,6 +202,13 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 	}
 
 	return ret;
+
+	error_no_mem:
+			return -ENOMEM;
+
+	error_no_mem_free:
+		kfree(g_mem_buffer);
+		return -ENOMEM;
 }
 
 static int vuln_release(struct inode *inode, struct file *filp)
@@ -221,7 +258,8 @@ static int vuln_module_init(void)
 	}
 
 	printk(KERN_WARNING "[!!!] use_stack_obj @%p [!!!]\n", use_stack_obj);
-
+ 	myprintf("sum(16进制输出)dsfddfdsdfsdfsdfdsfsdf:\n");
+  	myprintf("sum(16进制输出):%p\n",use_stack_obj);  
 	//内存分配 
 	buffer = (unsigned long *)kmalloc(PAGE_SIZE,GFP_KERNEL); 
 	//将该段内存设置为保留 

@@ -1,0 +1,1 @@
+cmd_/home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.ko /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.o /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.mod.o
