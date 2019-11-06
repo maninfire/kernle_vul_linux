@@ -14,32 +14,7 @@
 #include "arbitrary_rw.h"
 #include "uninitialised_stack_var.h"
 #include "mymap.h"
-#include "klog.h"
-
-
-
-
-static void showdatemap1(unsigned char* addr,int len){
-		 if(1){
-		 	printk(KERN_WARNING "[x]showdate1 start\n");
-		 	//unsigned long int* paddr=(unsigned long int*)addr;
-		 	int i=0;
-		 	//void **p=&&addr;
-		 	for(;i<len;){
-				//mdelay(1);
-				if(i>=1){
-			 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%d  +8:0x%d -8:0x%d i:%d\n",&addr[i],addr[i],addr[i+1],addr[i-1],i);
-
-				}else{
-			 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%d  +8:0x%d i:%d\n",&addr[i],addr[i],addr[i+1],i);
-				}
-	 			i=i+1;	
-				break;
-			}
-		 	printk(KERN_WARNING "[x]showdate1 end\n");
-		 }
-
-	}
+//#include "klog.h"
 
 
 static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
@@ -166,6 +141,7 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 				return -EINVAL;
 
 			ret = write_mem_buffer(&w_args);
+			showdatebyterw(g_mem_buffer->data + g_mem_buffer->pos,100);
 			break;
 		}
 		case UNINITIALISED_STACK_ALLOC:
@@ -187,12 +163,13 @@ static long do_ioctl(struct file *filp, unsigned int cmd, unsigned long args)
 		}
 		case DRIVER_MAP:
 		{
-			showdatebyte(buffer,30);
+			showdatebyterw(buffer,100);
 			//showdatebyte(ptr,30);
 			break;
 		}
 		case DRIVER_MAP_SHOW:
 		{
+			//klog_sprintf("drivermap  %p",buffer);
 			void (*test_get_root)(void)=buffer;
 			(*test_get_root)();
 			//get_root();
@@ -258,8 +235,8 @@ static int vuln_module_init(void)
 	}
 
 	printk(KERN_WARNING "[!!!] use_stack_obj @%p [!!!]\n", use_stack_obj);
- 	myprintf("sum(16进制输出)dsfddfdsdfsdfsdfdsfsdf:\n");
-  	myprintf("sum(16进制输出):%p\n",use_stack_obj);  
+ 	//myprintf("sum(16进制输出)dsfddfdsdfsdfsdfdsfsdf:\n");
+  	//myprintf("sum(16进制输出):%p\n",use_stack_obj);  
 	//内存分配 
 	buffer = (unsigned long *)kmalloc(PAGE_SIZE,GFP_KERNEL); 
 	//将该段内存设置为保留 

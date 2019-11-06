@@ -1,3 +1,4 @@
+#include "klog.h"
 #ifndef _ARBITRARY_RW_
 	#define _ARBITRARY_RW_
 
@@ -40,22 +41,7 @@
 	* point the global pointer to it.
 	* Don't allow 0 sized allocations.
 	*/
-static void showdatebyterw(void* addr,int len){
-		 if(1){
-		 	//printk(KERN_WARNING "[x]showdatemap start\n");
-		 	char* paddr=(unsigned long int*)addr;
-		 	int i=0;
-		 	//void **p=&&addr;
-			 printk(KERN_WARNING "[x]addr start 0x%llx \n",(paddr+i));
-		 	for(;i<len;){
-				//mdelay(1);
-		 		printk(KERN_WARNING "value: 0x%x--P:i:%d  ",*(paddr+i),i);
-				i=i+1;	 	
-			}
-		 	printk(KERN_WARNING "[x]addr end 0x%llx \n",(paddr+len));
-		 }
 
-	}
 	static int arbitrary_rw_init(init_args *args)
 	{
 		if(args->size == 0 || g_mem_buffer != NULL)
@@ -148,11 +134,11 @@ static void showdatebyterw(void* addr,int len){
 		count = w_args->count;
 		pos = g_mem_buffer->pos;
 
-		if((count + pos) > g_mem_buffer->data_size)
+		if((pos) > g_mem_buffer->data_size)
 			return -EINVAL;
 		printk(KERN_INFO"[x] des 0x%p source 0x%p count:0x%d",g_mem_buffer->data + pos,w_args->buff,count);
 		ret = copy_from_user(g_mem_buffer->data + pos, w_args->buff, count);
-		showdatebyterw(g_mem_buffer->data + pos,50);
+
 		return ret;
 	}
 

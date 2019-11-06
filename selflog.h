@@ -73,10 +73,10 @@ int get_log(int fd){
 	{ 
 	exit (1); 
 	}
-	//printf("buff: %s count: %d \n",r_args.buff,count);
+	printf("buff: %s count: %d \n",r_args.buff,count);
 	memcpy(Ptr,r_args.buff,count);
 	//printf("%s \n",Ptr);
-	puts(Ptr);
+	//puts(Ptr);
 	free(Ptr);
 	Ptr = NULL; 
 }

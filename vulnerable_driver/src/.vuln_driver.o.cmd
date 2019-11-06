@@ -796,6 +796,7 @@ deps_/home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/vuln_driver.
   /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/null_pointer_deref.h \
   /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/use_after_free.h \
   /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/arbitrary_rw.h \
+  /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.h \
   /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/uninitialised_stack_var.h \
   /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/mymap.h \
   include/linux/delay.h \
@@ -967,7 +968,6 @@ deps_/home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/vuln_driver.
     $(wildcard include/config/generic/pinconf.h) \
   include/linux/gpio/consumer.h \
     $(wildcard include/config/gpio/sysfs.h) \
-  /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/klog.h \
 
 /home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/vuln_driver.o: $(deps_/home/lier/work/new_vulnerable/code_vuln/vulnerable_driver/src/vuln_driver.o)
 

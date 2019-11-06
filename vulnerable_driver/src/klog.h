@@ -320,6 +320,8 @@ int myprintf(const char *fmt, ...)
 }  
   
 int klog_sprintf(const char *fmt, ...){
+    if(klog_buffer->data==NULL)
+        return 0;
     va_list args;  
     int i;  
     va_start(args, fmt);  
@@ -330,4 +332,68 @@ int klog_sprintf(const char *fmt, ...){
     va_end(args);  
     
     return i;
+}
+
+
+static void showdatemap1(unsigned char* addr,int len){
+		 if(1){
+		 	printk(KERN_WARNING "[x]showdate1 start\n");
+		 	//unsigned long int* paddr=(unsigned long int*)addr;
+            
+		 	int i=0;
+		 	//void **p=&&addr;
+		 	for(;i<len;){
+				//mdelay(1);
+				if(i>=1){
+			 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%d  +8:0x%d -8:0x%d i:%d\n",&addr[i],addr[i],addr[i+1],addr[i-1],i);
+
+				}else{
+			 		printk(KERN_WARNING "[x]addr 0x%llx value 0x%d  +8:0x%d i:%d\n",&addr[i],addr[i],addr[i+1],i);
+				}
+	 			i=i+1;	
+				break;
+			}
+		 	printk(KERN_WARNING "[x]showdate1 end\n");
+		 }
+
+	}
+
+static void showdatebyterw(void* addr,int len){
+		 if(1){
+		 	//printk(KERN_WARNING "[x]showdatemap start\n");
+		 	char* paddr=(unsigned long int*)addr;
+		 	int i=0;
+		 	//void **p=&&addr;
+			// printk(KERN_WARNING "[x]addr start 0x%llx \n",(paddr+i));
+			 klog_sprintf("[x]addr start 0x%p \n",(paddr+i));
+		 	for(;i<len;){
+				//mdelay(1);
+		 		//printk(KERN_WARNING "value: 0x%x--P:i:%d  ",*(paddr+i),i);
+				klog_sprintf("value: 0x%x ",*(paddr+i));
+                if(i%8==0){
+                    klog_sprintf("\n");
+                }
+				i=i+1;	 	
+			}
+		 	//printk(KERN_WARNING "[x]addr end 0x%llx \n",(paddr+len));
+			klog_sprintf("[x]addr end 0x%p \n",(paddr+len));
+		 }
+
+	}
+static void showdate(void* addr,int len){
+	//printk(KERN_WARNING "[x]showdate start\n");
+	unsigned long int* paddr=(unsigned long int*)addr;
+    klog_sprintf("[x]showdate start \n");
+	int i=0;
+	//void **p=&&addr;
+	for(;i<len;){
+		//printk(KERN_WARNING "[x]addr 0x%p value 0x%p",(paddr+i),*(paddr+i));
+        klog_sprintf( "[x]addr 0x%p value 0x%p",(paddr+i),*(paddr+i));
+        if(i%2==0){
+            klog_sprintf("\n");
+        }
+        i=1+i;
+	}
+	//printk(KERN_WARNING "[x]showdate end\n");
+    klog_sprintf( "[x]showdate end\n");
 }
