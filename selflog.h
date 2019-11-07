@@ -32,8 +32,7 @@ struct vdso_patch {
 };
 #define BUFF_SIZE 96
 static struct vdso_patch vdso_patch[2];
-#define START_ADDR 0xffffffc000000000 //0xffffffff80000000
-#define END_ADDR 0xffffffc00fffffff    //ffffffffffffefff
+
 
 struct init_args {
 	size_t size;
